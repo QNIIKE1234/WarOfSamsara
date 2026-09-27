@@ -54,16 +54,13 @@
    * `Core/Shared/ItemDefinition.cs`: โครงสร้างกระเป๋า 5 ช่อง (`Equip`, `Use`, `Setup`, `Etc`, `Cash`)
 4. ปรับแต่ง `.gitignore` ไม่ให้ดันโฟลเดอร์ขยะ `Library/` และ `Temp/`
 5. สร้าง `README.md` แม่บทเกมดีไซน์
-6. **Commit & Push ขึ้น GitHub เรียบร้อยแล้ว (Commit `5e11032`)**
+6. **Import Photon Fusion 2 SDK (v2.1) และ Settings เข้ามาเรียบร้อยแล้ว**
+7. **Commit & Push ขึ้น GitHub เรียบร้อยแล้ว (Commit `5e3b97b`)**
 
 ---
 
-## 🎯 5. สิ่งที่ต้องทำต่อในเซสชันหน้า (Immediate Next Steps)
-เมื่อ User กลับมาในเซสชันใหม่ ให้ดำเนินงานต่อตามลำดับนี้:
-
-1. **เช็คสถานะ Photon Fusion 2:**
-   * ตรวจสอบว่าใน `WarOfSamsara/Assets/Photon/Fusion` มีการ Import Fusion 2 SDK แล้วหรือยัง ถ้ายังให้แนะนำ User นำเข้าผ่าน Unity Package Manager (My Assets)
-2. **ระบบต่อสู้ & วิชาตัวเบาสไตล์ SoulSaver (Combat & Martial Arts):**
+## 🎯 5. สิ่งที่ต้องทำต่อในเซสชันนี้ (Immediate Next Steps)
+1. **ระบบต่อสู้ & วิชาตัวเบาสไตล์ SoulSaver (Combat & Martial Arts):**
    * สร้างสคริปต์ **Dash & Air Dash** (วิชาตัวเบา: ดับเบิ้ลแท็บลูกศร หรือกดปุ่ม Dash พุ่งตัวเลียดพื้น/กลางอากาศ)
    * สร้างระบบ **Hitbox & Hurtbox 2D** (รองรับ Melee Slash และ Skill AOE)
    * สร้างระบบ **Hit Reactions & CC**:
