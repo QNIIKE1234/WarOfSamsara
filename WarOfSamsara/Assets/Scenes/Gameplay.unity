@@ -1381,9 +1381,12 @@ MonoBehaviour:
   target: {fileID: 5793459666542704864}
   offset: {x: 0, y: 1.2, z: -10}
   smoothTime: 0.18
-  smoothTimeY: 0.22
   lookAhead: 1
   lookAheadDistance: 1.5
+  antiMotionSickness: 1
+  followOnlyWhenGrounded: 1
+  verticalDeadZone: 2.2
+  verticalGlideSmoothTime: 0.35
   useBounds: 1
   clampX: 1
   clampY: 0
