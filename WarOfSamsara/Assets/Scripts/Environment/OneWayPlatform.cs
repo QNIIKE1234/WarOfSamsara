@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-namespace MapleMMO.Environment
+namespace WarOfSamsara.Environment
 {
     /// <summary>
     /// One-way platform allowing players to jump up through and drop down with Down + Jump.

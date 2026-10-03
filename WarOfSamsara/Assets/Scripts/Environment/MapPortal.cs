@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace MapleMMO.Environment
+namespace WarOfSamsara.Environment
 {
     /// <summary>
     /// MapleStory-style Portal.

@@ -1,6 +1,6 @@
 using System;
 
-namespace MapleMMO.Shared
+namespace WarOfSamsara.Shared
 {
     public enum InventoryType
     {

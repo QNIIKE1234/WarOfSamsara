@@ -37,7 +37,7 @@
 * **Databases:**
   * **PostgreSQL:** บันทึกข้อมูลถาวร, คลังไอเทม, ระบบ P2P Trade แบบ **ACID Transaction (`SELECT ... FOR UPDATE`)** เพื่อกันบั๊กปั๊มของ 100%
   * **Redis:** Caching, Session, State ข้าม Channel
-* **Shared Code:** `MapleMMO.Shared` (แชร์สูตรคำนวณและ DTOs ระหว่าง Unity และ .NET Backend)
+* **Shared Code:** `WarOfSamsara.Shared` (แชร์สูตรคำนวณและ DTOs ระหว่าง Unity และ .NET Backend)
 
 ---
 
@@ -56,20 +56,30 @@
 5. สร้าง `README.md` แม่บทเกมดีไซน์
 6. **Import Photon Fusion 2 SDK (v2.1) และ Settings เข้ามาเรียบร้อยแล้ว**
 7. **Commit & Push ขึ้น GitHub เรียบร้อยแล้ว (Commit `5e3b97b`)**
+8. **เซ็ตอัปฉากจริงแรก `STG001_The Streets` พร้อมแก้บั๊กฟิสิกส์ 2D 100%:**
+   - นำเข้า Asset แยก 7 เลเยอร์ Parallax (Sky, BG, MG, Ground, FG, Super FG)
+   - ผิวถนนจริงอยู่ที่ `Y = +1.25m` (ความกว้าง 53.33m) พร้อมกำแพงกั้นซ้าย-ขวา
+   - ปรับสเกลตัวละคร `FGT001_AllRounder` เป็น `0.7` สูง 2.40m ส้นเท้าตรงกับขอบล่าง Collider เป๊ะ วางจุดเกิดที่ `Y = 3.05m` ไม่ลอยไม่จม
+   - แก้ไข `PlayerMovement2D.cs` ใช้ `_collider.bounds` และ `Physics2D.BoxCast(ContactFilter2D)` สไตล์ Unity 6 ป้องกันบั๊กตัด Layer 0
+   - ติดตั้งระบบ **Dash / วิชาตัวเบา (Shift)** พุ่งเลียดพื้น 15m/s คูลดาวน์ 0.45s
+   - วางมอนสเตอร์กระสอบทราย `Enemy_Thug (ENE002)` และ `Enemy_BadDog (ENE001)` ไว้บนถนน
+   - จัดวางสถาปัตยกรรม **Single Scene + Map Prefabs** สร้างโฟลเดอร์ `Assets/Prefabs/Maps/` และ `Assets/Resources/Maps/` พร้อมระบบ Auto-Export Prefab ใน `StreetStageBuilder.cs`
 
 ---
 
 ## 🎯 5. สิ่งที่ต้องทำต่อในเซสชันนี้ (Immediate Next Steps)
-1. **ระบบต่อสู้ & วิชาตัวเบาสไตล์ SoulSaver (Combat & Martial Arts):**
-   * สร้างสคริปต์ **Dash & Air Dash** (วิชาตัวเบา: ดับเบิ้ลแท็บลูกศร หรือกดปุ่ม Dash พุ่งตัวเลียดพื้น/กลางอากาศ)
-   * สร้างระบบ **Hitbox & Hurtbox 2D** (รองรับ Melee Slash และ Skill AOE)
-   * สร้างระบบ **Hit Reactions & CC**:
-     * `Flinch` (ชะงัก)
-     * `Knockback` (กระเด็น)
-     * `Air Launch` (งัดลอยฟ้า สำหรับต่อ Air Combo)
-     * `Down & Wake-up Invincibility` (ล้มลงพื้น + ลุกขึ้นมากระพริบอมตะ 1.5 วิ ป้องกัน Infinite Combo)
-3. **ระบบดูดวิญญาณ (Soul Absorbing):**
-   * มอนสเตอร์หรือผู้เล่นเวลาโดนตี/ตาย จะดรอป Soul Orb ลอยออกมา
-   * กดปุ่มดูดวิญญาณ (เช่น Spacebar) ลากวิญญาณเข้าตัว เพื่อเติมเกจ Fury / Mana
-4. **ตัวเลขดาเมจลอย (Damage Popup):**
-   * ตัวเลขดาเมจลอยตามจังหวะคอมโบ สไตล์ MapleStory (Damage Skins + Critical Hit)
+1. **ระบบต่อสู้ & คอมโบหมัดมวย/ดาบสไตล์ SoulSaver (Combat System):**
+   - สร้างปุ่มโจมตี (Left Ctrl / Key C) ทำ Combo Attack 3 จังหวะ
+   - สร้างระบบ **Hitbox & Hurtbox 2D** (Trigger Box ตรวจจับศัตรู)
+   - สร้างระบบ **Hit Reactions & CC**:
+     - `Flinch` (ชะงัก)
+     - `Knockback` (กระเด็น)
+     - `Air Launch` (งัดลอยฟ้า สำหรับต่อ Air Combo)
+     - `Down & Wake-up Invincibility` (ล้มลงพื้น + ลุกขึ้นมากระพริบอมตะ 1.5 วิ ป้องกัน Infinite Combo)
+2. **ระบบดูดวิญญาณ (Soul Absorbing):**
+   - มอนสเตอร์หรือผู้เล่นเวลาโดนตี/ตาย จะดรอป Soul Orb ลอยออกมา
+   - กดปุ่มดูดวิญญาณ (เช่น Spacebar) ลากวิญญาณเข้าตัว เพื่อเติมเกจ Fury / Mana
+3. **ตัวเลขดาเมจลอย (Damage Popup):**
+   - ตัวเลขดาเมจลอยตามจังหวะคอมโบ สไตล์ MapleStory (Damage Skins + Critical Hit)
+4. **ระบบ MapManager (Portal Warp):**
+   - เดินเข้าวาร์ป -> Fade Black -> Unload Map เก่า -> โหลด Map Prefab ใหม่จาก `Assets/Prefabs/Maps/` -> ย้ายตำแหน่งตัวละคร -> Fade In

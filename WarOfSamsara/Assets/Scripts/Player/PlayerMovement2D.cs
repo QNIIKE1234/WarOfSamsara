@@ -1,8 +1,8 @@
 using System;
 using UnityEngine;
-using MapleMMO.Environment;
+using WarOfSamsara.Environment;
 
-namespace MapleMMO.Player
+namespace WarOfSamsara.Player
 {
     public enum PlayerMovementState
     {
@@ -33,6 +33,11 @@ namespace MapleMMO.Player
         [SerializeField] private float acceleration = 40.0f;
         [SerializeField] private float deceleration = 35.0f;
 
+        [Header("Dash & Martial Arts (SoulSaver)")]
+        [SerializeField] private float dashSpeed = 15.0f;
+        [SerializeField] private float dashDuration = 0.2f;
+        [SerializeField] private float dashCooldown = 0.45f;
+
         [Header("Jumping & Gravity")]
         [SerializeField] private float jumpForce = 12.0f;
         [SerializeField] private float fallGravityMultiplier = 1.8f;
@@ -45,13 +50,13 @@ namespace MapleMMO.Player
         [Header("Ground Detection")]
         [SerializeField] private LayerMask groundLayer;
         [SerializeField] private LayerMask oneWayPlatformLayer;
-        [SerializeField] private float groundCheckDistance = 0.08f;
+        [SerializeField] private float groundCheckDistance = 0.12f;
 
         [Header("Crouch Settings")]
-        [SerializeField] private Vector2 normalColliderSize = new Vector2(0.6f, 1.2f);
-        [SerializeField] private Vector2 normalColliderOffset = new Vector2(0f, 0.6f);
-        [SerializeField] private Vector2 crouchColliderSize = new Vector2(0.6f, 0.6f);
-        [SerializeField] private Vector2 crouchColliderOffset = new Vector2(0f, 0.3f);
+        [SerializeField] private Vector2 normalColliderSize = new Vector2(1.0f, 1.0f);
+        [SerializeField] private Vector2 normalColliderOffset = Vector2.zero;
+        [SerializeField] private Vector2 crouchColliderSize = new Vector2(1.0f, 0.6f);
+        [SerializeField] private Vector2 crouchColliderOffset = new Vector2(0f, -0.2f);
 
         // Components
         private Rigidbody2D _rb;
@@ -62,6 +67,9 @@ namespace MapleMMO.Player
         public int FacingDirection { get; private set; } = 1; // 1 = Right, -1 = Left
         public bool IsGrounded { get; private set; }
         public bool IsOnOneWayPlatform { get; private set; }
+        public bool IsDashing { get; private set; }
+
+        private float _lastDashTime = -999f;
 
         // Ladder / Rope Tracking
         private ClimbableRope _currentRope;
@@ -82,7 +90,38 @@ namespace MapleMMO.Player
             _collider = GetComponent<BoxCollider2D>();
 
             _defaultGravityScale = _rb.gravityScale;
-            SetColliderDimensions(false);
+            if (_collider != null)
+            {
+                normalColliderSize = _collider.size;
+                normalColliderOffset = _collider.offset;
+            }
+        }
+
+        public void TriggerDash()
+        {
+            if (IsDashing || Time.time < _lastDashTime + dashCooldown) return;
+            if (CurrentState == PlayerMovementState.Climbing) return;
+
+            StartCoroutine(PerformDash());
+        }
+
+        private System.Collections.IEnumerator PerformDash()
+        {
+            IsDashing = true;
+            _lastDashTime = Time.time;
+            float originalGravity = _rb.gravityScale;
+            _rb.gravityScale = 0f;
+
+            float elapsed = 0f;
+            while (elapsed < dashDuration)
+            {
+                _rb.linearVelocity = new Vector2(FacingDirection * dashSpeed, 0f);
+                elapsed += Time.fixedDeltaTime;
+                yield return new WaitForFixedUpdate();
+            }
+
+            _rb.gravityScale = originalGravity;
+            IsDashing = false;
         }
 
         /// <summary>
@@ -91,6 +130,8 @@ namespace MapleMMO.Player
         public void ProcessMovement(float moveInput, float verticalInput, bool jumpPressed, bool jumpHeld)
         {
             CheckGround();
+
+            if (IsDashing) return;
 
             switch (CurrentState)
             {
@@ -263,19 +304,45 @@ namespace MapleMMO.Player
 
         #region Ground Checking & Triggers
 
+        private readonly RaycastHit2D[] _groundHits = new RaycastHit2D[8];
+
         private void CheckGround()
         {
-            Vector2 boxCenter = (Vector2)transform.position + _collider.offset + Vector2.down * (_collider.size.y * 0.5f);
-            Vector2 boxSize = new Vector2(_collider.size.x * 0.9f, groundCheckDistance);
+            if (_collider == null) return;
 
-            RaycastHit2D hit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.down, groundCheckDistance, groundLayer | oneWayPlatformLayer);
+            // คำนวณตำแหน่งเท้าจาก World Bounds จริง เพื่อให้รองรับทุก Scale อัตโนมัติ
+            Bounds bounds = _collider.bounds;
+            Vector2 boxCenter = new Vector2(bounds.center.x, bounds.min.y + 0.05f);
+            Vector2 boxSize = new Vector2(bounds.size.x * 0.85f, 0.1f);
 
-            IsGrounded = hit.collider != null;
+            int maskValue = (groundLayer.value != 0 || oneWayPlatformLayer.value != 0)
+                ? (groundLayer.value | oneWayPlatformLayer.value)
+                : ~0;
+
+            ContactFilter2D filter = new ContactFilter2D();
+            filter.SetLayerMask(maskValue);
+            filter.useTriggers = false;
+
+            int hitCount = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.down, filter, _groundHits, groundCheckDistance);
+
+            Collider2D validGround = null;
+            for (int i = 0; i < hitCount; i++)
+            {
+                Collider2D hitCol = _groundHits[i].collider;
+                if (hitCol != null && hitCol != _collider && !hitCol.isTrigger && !hitCol.transform.IsChildOf(transform))
+                {
+                    validGround = hitCol;
+                    break;
+                }
+            }
+
+            IsGrounded = validGround != null;
 
             if (IsGrounded)
             {
-                IsOnOneWayPlatform = ((1 << hit.collider.gameObject.layer) & oneWayPlatformLayer) != 0;
-                _currentPlatform = hit.collider.GetComponent<OneWayPlatform>();
+                IsOnOneWayPlatform = oneWayPlatformLayer.value != 0 && ((1 << validGround.gameObject.layer) & oneWayPlatformLayer.value) != 0;
+                _currentPlatform = validGround.GetComponent<OneWayPlatform>();
+                if (_currentPlatform != null) IsOnOneWayPlatform = true;
             }
             else
             {
@@ -321,6 +388,19 @@ namespace MapleMMO.Player
         {
             _collider.size = isCrouching ? crouchColliderSize : normalColliderSize;
             _collider.offset = isCrouching ? crouchColliderOffset : normalColliderOffset;
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            if (_collider == null) _collider = GetComponent<BoxCollider2D>();
+            if (_collider == null) return;
+
+            Bounds bounds = _collider.bounds;
+            Vector2 boxCenter = new Vector2(bounds.center.x, bounds.min.y + 0.05f - groundCheckDistance * 0.5f);
+            Vector2 boxSize = new Vector2(bounds.size.x * 0.85f, groundCheckDistance + 0.05f);
+
+            Gizmos.color = IsGrounded ? Color.green : Color.red;
+            Gizmos.DrawWireCube(boxCenter, boxSize);
         }
 
         #endregion

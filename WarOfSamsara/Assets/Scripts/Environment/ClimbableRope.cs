@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace MapleMMO.Environment
+namespace WarOfSamsara.Environment
 {
     /// <summary>
     /// Represents a ladder or rope that players can grab, climb up/down, and jump off from.
