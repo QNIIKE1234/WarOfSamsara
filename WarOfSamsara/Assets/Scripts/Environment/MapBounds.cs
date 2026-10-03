@@ -28,6 +28,18 @@ namespace WarOfSamsara.Environment
 
         public Bounds Bounds => Collider.bounds;
 
+        private void Start()
+        {
+            if (Application.isPlaying)
+            {
+                var camFollow = Object.FindFirstObjectByType<CameraControl.CameraFollow2D>();
+                if (camFollow != null)
+                {
+                    camFollow.SetBounds(Collider);
+                }
+            }
+        }
+
         private void Reset()
         {
             boxCollider = GetComponent<BoxCollider2D>();

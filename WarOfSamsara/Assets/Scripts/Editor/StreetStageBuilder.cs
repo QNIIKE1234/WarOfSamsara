@@ -383,31 +383,5 @@ namespace WarOfSamsara.Editor
             }
         }
     }
-
-    [InitializeOnLoad]
-    public static class AutoStageSetup
-    {
-        static AutoStageSetup()
-        {
-            EditorApplication.update += RunOnce;
-        }
-
-        private static void RunOnce()
-        {
-            EditorApplication.update -= RunOnce;
-
-            var scene = UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene();
-            if (string.IsNullOrEmpty(scene.path) || !scene.path.EndsWith("Gameplay.unity"))
-            {
-                scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/Scenes/Gameplay.unity");
-            }
-
-            if (GameObject.Find("STG001_The_Streets") == null)
-            {
-                Debug.Log("<color=#00FF88>[AutoStageSetup]</color> กำลังสร้างฉาก STG001_The Streets ลงใน Gameplay.unity และเซฟอัตโนมัติ...");
-                StreetStageBuilder.BuildStreetStageInternal(false);
-            }
-        }
-    }
 }
 #endif

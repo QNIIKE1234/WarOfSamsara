@@ -909,50 +909,5 @@ namespace WarOfSamsara.Editor
 
         #endregion
     }
-
-    [InitializeOnLoad]
-    public static class AutoBaseSetup
-    {
-        static AutoBaseSetup()
-        {
-            EditorApplication.update += RunOnce;
-        }
-
-        private static void RunOnce()
-        {
-            EditorApplication.update -= RunOnce;
-            if (EditorApplication.isPlayingOrWillChangePlaymode) return;
-
-            // ตรวจสอบระบบ Base FBF
-            string fbfPath = "Assets/Resources/Base/Player1/Base_Walk.png";
-            string fbfAtkPath = "Assets/Resources/Base/Player1/Base_Attack.png";
-            if (File.Exists(fbfPath))
-            {
-                GameObject player = GameObject.Find("Player_Base");
-                bool needFbfSetup = false;
-
-                if (player == null) needFbfSetup = true;
-                else
-                {
-                    Animator anim = player.GetComponent<Animator>();
-                    if (anim == null || anim.runtimeAnimatorController == null || anim.runtimeAnimatorController.name != "BasePlayer_FBF")
-                    {
-                        needFbfSetup = true;
-                    }
-                }
-
-                if (File.Exists(fbfAtkPath) && !File.Exists("Assets/Resources/Base/Player1/Frames/Attack_0.png"))
-                {
-                    needFbfSetup = true;
-                }
-
-                if (needFbfSetup)
-                {
-                    Debug.Log("<color=#00FF88>[AutoBaseSetup]</color> กำลังเซ็ตอัป Base FBF (Walk & Attacks) อัตโนมัติ...");
-                    BaseCharacterBuilder.SetupBaseWalkCharacter();
-                }
-            }
-        }
-    }
 }
 #endif

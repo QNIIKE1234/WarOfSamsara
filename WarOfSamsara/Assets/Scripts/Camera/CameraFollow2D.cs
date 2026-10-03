@@ -15,16 +15,26 @@ namespace WarOfSamsara.CameraControl
         [SerializeField] private Transform target;
         [SerializeField] private Vector3 offset = new Vector3(0f, 1.2f, -10f);
         [SerializeField] private float smoothTime = 0.18f;
+        [Tooltip("ความหน่วงแกน Y แยกจากแกน X เพื่อให้นุ่มนวลเวลาตัวละครกระโดด ไม่เวียนหัว (ใส่ 0 หรือน้อยกว่าเพื่อใช้ smoothTime เดียวกัน)")]
+        [SerializeField] private float smoothTimeY = 0.22f;
         [SerializeField] private bool lookAhead = true;
         [SerializeField] private float lookAheadDistance = 1.5f;
 
         [Header("Map Boundary Clamping")]
         [SerializeField] private bool useBounds = true;
+        [Tooltip("ล็อกแกน X ไม่ให้กล้องหลุดขอบซ้าย-ขวาของฉาก")]
+        [SerializeField] private bool clampX = true;
+        [Tooltip("ล็อกเพดานด้านบนของแกน Y ด้วยกรอบ MapBounds (หากเปิดไว้แต่ MapBounds เตี้ย กล้องจะไม่ยอมขึ้นตามที่สูง)")]
+        [SerializeField] private bool clampY = false;
+        [Tooltip("ล็อกเฉพาะขอบล่างของแมพ เพื่อกันไม่ให้กล้องจมลงใต้พื้นดิน แต่ปล่อยให้กล้องลอยตามผู้เล่นขึ้น Platform สูงๆ ได้อิสระ")]
+        [SerializeField] private bool clampMinYOnly = true;
         [SerializeField] private Collider2D boundaryCollider;
 
         [Header("Camera Reference")]
         private Camera cam;
-        private Vector3 currentVelocity;
+        private float currentVelocityX;
+        private float currentVelocityY;
+        private float currentVelocityZ;
         private float shakeTimeRemaining;
         private float shakeMagnitude;
 
@@ -44,6 +54,12 @@ namespace WarOfSamsara.CameraControl
             boundaryCollider = bounds;
         }
 
+        public void SetClampY(bool enableClampY, bool enableClampMinYOnly = true)
+        {
+            clampY = enableClampY;
+            clampMinYOnly = enableClampMinYOnly;
+        }
+
         private void LateUpdate()
         {
             if (target == null) return;
@@ -57,8 +73,13 @@ namespace WarOfSamsara.CameraControl
                 targetPos.x += facingDirection * lookAheadDistance;
             }
 
-            // คำนวณตำแหน่ง SmoothDamp
-            Vector3 smoothPos = Vector3.SmoothDamp(transform.position, targetPos, ref currentVelocity, smoothTime);
+            // คำนวณ SmoothDamp แยกแกน X และ Y เพื่อความนุ่มนวลเวลาผู้เล่นกระโดด
+            float actualSmoothY = smoothTimeY > 0f ? smoothTimeY : smoothTime;
+            float smoothX = Mathf.SmoothDamp(transform.position.x, targetPos.x, ref currentVelocityX, smoothTime);
+            float smoothY = Mathf.SmoothDamp(transform.position.y, targetPos.y, ref currentVelocityY, actualSmoothY);
+            float smoothZ = Mathf.SmoothDamp(transform.position.z, targetPos.z, ref currentVelocityZ, smoothTime);
+
+            Vector3 smoothPos = new Vector3(smoothX, smoothY, smoothZ);
 
             // Clamp ขอบเขตแมพ
             if (useBounds && boundaryCollider != null)
@@ -68,23 +89,39 @@ namespace WarOfSamsara.CameraControl
 
                 Bounds b = boundaryCollider.bounds;
 
-                // ตรวจสอบว่าแมพกว้างกว่าจอกล้องหรือไม่
-                if (b.size.x >= camHalfWidth * 2f)
+                // ตรวจสอบแกน X
+                if (clampX)
                 {
-                    smoothPos.x = Mathf.Clamp(smoothPos.x, b.min.x + camHalfWidth, b.max.x - camHalfWidth);
-                }
-                else
-                {
-                    smoothPos.x = b.center.x; // กึ่งกลางถ้าแมพแคบกว่าจอ
+                    if (b.size.x >= camHalfWidth * 2f)
+                    {
+                        smoothPos.x = Mathf.Clamp(smoothPos.x, b.min.x + camHalfWidth, b.max.x - camHalfWidth);
+                    }
+                    else
+                    {
+                        smoothPos.x = b.center.x; // กึ่งกลางถ้าแมพแคบกว่าจอ
+                    }
                 }
 
-                if (b.size.y >= camHalfHeight * 2f)
+                // ตรวจสอบแกน Y
+                if (clampY)
                 {
-                    smoothPos.y = Mathf.Clamp(smoothPos.y, b.min.y + camHalfHeight, b.max.y - camHalfHeight);
+                    if (b.size.y >= camHalfHeight * 2f)
+                    {
+                        smoothPos.y = Mathf.Clamp(smoothPos.y, b.min.y + camHalfHeight, b.max.y - camHalfHeight);
+                    }
+                    else
+                    {
+                        smoothPos.y = b.center.y;
+                    }
                 }
-                else
+                else if (clampMinYOnly)
                 {
-                    smoothPos.y = b.center.y;
+                    // ล็อกเฉพาะขอบล่าง (ไม่ให้เห็นใต้พื้นดิน แต่ปล่อยให้กล้องตามขึ้น Platform สูงๆ ได้)
+                    float minY = b.min.y + camHalfHeight;
+                    if (smoothPos.y < minY)
+                    {
+                        smoothPos.y = minY;
+                    }
                 }
             }
 

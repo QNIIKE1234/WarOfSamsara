@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4acaf0d402b60b94caea02e1d6e77608, type: 3}
+  m_Name: Enemy_Golem_Config
+  m_EditorClassIdentifier: Assembly-CSharp::WarOfSamsara.Enemy.EnemyConfig
+  enemyId: ENE_0001
+  enemyName: Stone Golem
+  level: 1
+  expReward: 35
+  goldReward: 15
+  maxHp: 120
+  touchDamage: 12
+  attackDamage: 25
+  attackRange: 1.8
+  attackCooldown: 2.2
+  defense: 4
+  moveSpeed: 1.8
+  patrolRadius: 4.5
+  detectRadius: 6
+  loseTargetRadius: 9
+  idleWaitTime: 1.5
+  hasFlyingMovement: 0
+  knockbackResistance: 0.2
+  invincibilityDuration: 0.25
