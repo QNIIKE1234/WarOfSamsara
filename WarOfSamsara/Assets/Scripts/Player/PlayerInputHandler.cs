@@ -16,6 +16,7 @@ namespace WarOfSamsara.Player
     public class PlayerInputHandler : MonoBehaviour
     {
         private PlayerMovement2D _movement;
+        private PlayerVisual2D _visual;
 
         // Cached input state
         private float _moveInput;
@@ -26,6 +27,7 @@ namespace WarOfSamsara.Player
         private void Awake()
         {
             _movement = GetComponent<PlayerMovement2D>();
+            _visual = GetComponent<PlayerVisual2D>();
         }
 
         private void Update()
@@ -63,6 +65,20 @@ namespace WarOfSamsara.Player
                     _movement.TriggerDash();
                 }
 
+                // Attack (Left Ctrl or X)
+                if (kb.leftCtrlKey.wasPressedThisFrame || kb.xKey.wasPressedThisFrame)
+                {
+                    if (_visual == null) _visual = GetComponent<PlayerVisual2D>();
+                    _visual?.PlayAttack();
+                }
+
+                // Skill (Z or C)
+                if (kb.zKey.wasPressedThisFrame || kb.cKey.wasPressedThisFrame)
+                {
+                    if (_visual == null) _visual = GetComponent<PlayerVisual2D>();
+                    _visual?.PlaySkill();
+                }
+
                 // Portal: Up arrow or W
                 if (kb.upArrowKey.wasPressedThisFrame || kb.wKey.wasPressedThisFrame)
                 {
@@ -87,6 +103,18 @@ namespace WarOfSamsara.Player
             if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift))
             {
                 _movement.TriggerDash();
+            }
+
+            if (Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.X))
+            {
+                if (_visual == null) _visual = GetComponent<PlayerVisual2D>();
+                _visual?.PlayAttack();
+            }
+
+            if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.C))
+            {
+                if (_visual == null) _visual = GetComponent<PlayerVisual2D>();
+                _visual?.PlaySkill();
             }
 
             if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
